@@ -1,10 +1,6 @@
 if(!require(caret)) install.packages('caret')
 library(caret)
 
-#ESTA ES UNA LINEA DE PRUEBA
-fn_pred_2 <- function(data2, thr = 0.5) {
-  factor(ifelse(data2[, 'Yes'] > thr, 'Yes', 'No'))
-}
 # https://topepo.github.io/caret/index.html
 
 # utility
