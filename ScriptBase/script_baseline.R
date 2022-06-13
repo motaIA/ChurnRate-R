@@ -17,7 +17,9 @@ script.start <- Sys.time()
 
 print('Start')
 
-# leer el archivo dataset.csv de la carpeta
+##::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+##                    Ingeneria de Datos
+##::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 dataset <- read.csv('data/dataset.csv')
 
