@@ -1,4 +1,11 @@
-source('../utils/utils_oblig.R')
+##::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+##      Tecnicas de Machine Learning - Universidad ORT del Uruguay
+##                  Proyecto Final - Churn Rate Predictor  
+##   Estudiantes: Ignacio Cerdeña (No.171385) y Danny J. Mota (No. 264796) 
+##                      Semestre Marzo 2022 
+##                            script.R
+##::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+source('utils/utils_oblig.R')
 
 set.seed(117)
 
@@ -12,12 +19,15 @@ print('Start')
 
 # leer el archivo dataset.csv de la carpeta
 
-dataset <- read.csv('../data/dataset.csv')
+dataset <- read.csv('data/dataset.csv')
+
+length(which(dataset$Churn=='Yes'))
+
+length(which(dataset$Churn=='No'))
 
 print('** Tratamiento inicial de los datos')
 
 # ver la estructura del dataset
-
 # str(dataset)
 
 # asignar el nombre del jugador como nombre de la fila
