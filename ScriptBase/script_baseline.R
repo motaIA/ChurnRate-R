@@ -1,4 +1,15 @@
+<<<<<<< Updated upstream
 source('../utils/utils_oblig.R')
+=======
+##::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+##      Tecnicas de Machine Learning - Universidad ORT del Uruguay
+##                  Proyecto Final - Churn Rate Predictor  
+##   Estudiantes: Ignacio Cerdeña (No.171385) y Danny J. Mota (No. 264796) 
+##                      Semestre Marzo 2022 
+##                            script.R.
+##::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+source('utils/utils_oblig.R')
+>>>>>>> Stashed changes
 
 set.seed(117)
 
