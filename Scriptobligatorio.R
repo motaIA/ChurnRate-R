@@ -61,10 +61,12 @@ rownames(dataset) <- dataset$CustomerID
 df <- na.omit(dataset[,-1])
 df$ServiceArea <- NULL
 
+#AGREGO UN AS.FACTOR
+df$Churn<-as.factor(df$Churn)
+
 df.output.levels <- levels(df$Churn)    #No s? que quiere ver con 
 
 
-df$Churn<-as.factor(df$Churn)
 
 ##::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ##                Analisis Descriptivo sobre df
@@ -155,7 +157,7 @@ print(df.baseline.utility)
 
 print('Matriz de confusion')
 
-df.baseline.cm <- conf_matrix(df.baseline.pred, df.part$dev$Churn)  #ERROR VER
+df.baseline.cm <- conf_matrix(df.baseline.pred, df.part$dev$Churn)  
 
 print(df.baseline.cm)
 
@@ -189,8 +191,10 @@ print(script.done - script.start)
 
 df.rl<-df
 
-df.rl<-df.rl%>%
-  mutate(Churn=ifelse(Churn=="No",0,1))
+#df.rl<-df.rl%>%
+  #mutate(Churn=ifelse(Churn=="No",0,1))
+
+df.rl$Churn<-ifelse(df.rl$Churn=="Yes",1,0)
 
 
 
@@ -274,6 +278,7 @@ print(h.pred2_test_error)
 fn_accuracy <- function(yhat, y) {mean(yhat == y)}
 
 print('Accuracy train:')
+
 rl_accuracy_train <- fn_accuracy(rl.yhat, df.rl$Churn)
 print(rl_accuracy_train)
 
@@ -283,7 +288,11 @@ print(rl_accuracy_test)
 
 
 # Matriz de confusion
-rl_cm_test <- confusionMatrix(as.factor(rl.yhat2), h.train$Churn)     #ERROR VER
+
+rl_cm_test <- confusionMatrix(as.factor(rl.yhat2),as.factor(h.train$Churn))   
+erroryhat<-levels(rl.yhat)
+classyhat<-class(rl.yhat)
+
 print("Matriz de confusion Regresion Logistica:")
 print(list(tab = rl_cm_test$table,
            acc = rl_cm_test$overall['Accuracy'],
