@@ -17,6 +17,9 @@ if(!require('caret')) install.packages('caret')
 
 library(glmnet)
 library(caret)
+library(ggcorrplot)
+install.packages("corrplot")
+library(corrplot)
 
 library(e1071)
 
@@ -58,7 +61,12 @@ rownames(dataset) <- dataset$CustomerID
 df <- na.omit(dataset[,-1])
 df$ServiceArea <- NULL
 
-df.output.levels <- levels(df$Churn)    #No sé que quiere ver con esto
+#AGREGO UN AS.FACTOR
+df$Churn<-as.factor(df$Churn)
+
+df.output.levels <- levels(df$Churn)    #No s? que quiere ver con 
+
+
 
 ##::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ##                Analisis Descriptivo sobre df
@@ -119,7 +127,7 @@ hist(df$AdjustmentsToCreditRating) #No es normal
 
 df.part <- train_dev_partition(df, p = 0.9)
 
-#creo objeto para verificar la utilidadc
+#creo objeto para verificar la utilidadd
 
 df.fn_summary <- fn_summaryUtility
 
@@ -130,9 +138,9 @@ df.form <- Churn ~ .
 
 print('** Utilidad maxima en dev')
 
-#Compara lo mismo para tener la máxima utilidad
+#Compara lo mismo para tener la m?xima utilidad
 
-df.max_utility <- fn_utility(df.part$dev$Churn, df.part$dev$Churn)  #VER ESTO, HAY 2 $
+df.max_utility <- fn_utility(df.part$dev$Churn, df.part$dev$Churn)  
 
 print(df.max_utility)
 
@@ -149,7 +157,7 @@ print(df.baseline.utility)
 
 print('Matriz de confusion')
 
-df.baseline.cm <- conf_matrix(df.baseline.pred, df.part$dev$Churn)  #ERROR VER
+df.baseline.cm <- conf_matrix(df.baseline.pred, df.part$dev$Churn)  
 
 print(df.baseline.cm)
 
@@ -176,50 +184,121 @@ print(script.done - script.start)
 
 
 ##::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-##                Regresion Lineal
+##                Regresion Logistica
 ##::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-
-
 
 #Genero una base para modificar los Yes por 1, y los NO por 0
+
 df.rl<-df
-df.rl<-df.rl%>%
-  mutate(Churn=ifelse(Churn=="No",0,1))
+
+#df.rl<-df.rl%>%
+  #mutate(Churn=ifelse(Churn=="No",0,1))
+
+df.rl$Churn<-ifelse(df.rl$Churn=="Yes",1,0)
 
 
 
-# lista para guardar las regresiones
-reg <- list()
+#Veo la estructura de los datos
+str(df)
 
+#Tengo que eliminar las variables character para poder hacer una matriz de correlaciÃ³n
+df.rl1<-df.rl[ ,1:54]
+df.rl2<-df.rl1[ ,-53]
+df.rl3<-df.rl2[ ,-52]
+df.rl4<-df.rl3[,-51:-52]
+df.rl5<-df.rl4[ ,-49]
+df.rl6<-df.rl5[ ,-45:-46]
+df.rl7<-df.rl6[ ,-31:-42]
 
-#Lista de regresiones, hipotesis
-#reg[[1]] <- glm(Churn ~ ., data = df.rl)   #Cambiar a 0 y 1??
-reg[[2]] <- glm(Churn ~ TotalRecurringCharge, data = df.rl)
-
-
-
-##::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-##                  PARTE 3 - AnÃ¡lisis de error
-##::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-
-
-#Lista de las formulas utilizadas para generar las hipotesis 
-#Aca irian las pruebas de nuestras hipótesis, por ahora solo es "."
-prueba.form <- c('TotalRecurringCharge')
-
-
-#lista de objetos de formula
-list_fit <- glm_fit_formulas(train = df.rl, formulas =prueba.form)
+df.rl<-df.rl7
 
 
 
 
 
+#Particion de df
 
 
+df.ntrain <- ceiling(nrow(df.rl) * .8)
+df.ntest <- nrow(df.rl) - df.ntrain
 
+h.part <- partition_train_test(df.rl, ntrain = df.ntrain) # ver utils.R
+h.train <- h.part$train
+h.test <- h.part$test
+
+
+#Matriz de correlacion
+
+corrplot(cor(df.rl),method="circle")
+
+
+# Aprender la hipotesis
+rl.fit <- glm(Churn ~ ., data =h.train , family = 'binomial')
+
+
+# Calcular la prediccion (train)
+rl.proba <- predict(rl.fit, newdata = h.train, type = 'response')
+rl.yhat <- ifelse(rl.proba > 0.3, 1, 0)
+
+
+# Plotear la distribucion (histograma) de la prediccion en train
+plot(as.factor(rl.yhat), 
+     main = 'Prediccion en train', 
+     ylab = 'quality',
+     xlab = 'observacion',
+     col = 'red')   
+
+
+# Error (train)
+print('Error Regresion Logistica Train')
+h.pred2_train_error <- fn_err_cla(rl.yhat, h.train$Churn)
+print(h.pred2_train_error)
+
+
+# Calcular la prediccion (test)
+rl.proba2 <- predict(rl.fit, newdata = h.train, type = 'response')
+rl.yhat2 <- ifelse(rl.proba2 > 0.3, 1, 0)
+
+
+# Plotear la distribucion (histograma) de la prediccion en test
+plot(as.factor(rl.yhat2), 
+     main = 'Prediccion en test', 
+     ylab = 'quality',
+     xlab = 'observacion',
+     col = 'red')    
+
+
+# Error (test)
+print('Error Regresion Logistica Test')
+h.pred2_test_error <- fn_err_cla(rl.yhat2, df.rl$Churn)
+print(h.pred2_test_error)
+
+
+# Metricas de utilidad
+fn_accuracy <- function(yhat, y) {mean(yhat == y)}
+
+print('Accuracy train:')
+
+rl_accuracy_train <- fn_accuracy(rl.yhat, df.rl$Churn)
+print(rl_accuracy_train)
+
+print('Accuracy test:')
+rl_accuracy_test <- fn_accuracy(rl.yhat2, df.rl$Churn)
+print(rl_accuracy_test)
+
+
+# Matriz de confusion
+
+rl_cm_test <- confusionMatrix(as.factor(rl.yhat2),as.factor(h.train$Churn))   
+erroryhat<-levels(rl.yhat)
+classyhat<-class(rl.yhat)
+
+print("Matriz de confusion Regresion Logistica:")
+print(list(tab = rl_cm_test$table,
+           acc = rl_cm_test$overall['Accuracy'],
+           pre = rl_cm_test$byClass['Precision'],
+           rec = rl_cm_test$byClass['Recall'],
+           f1 = rl_cm_test$byClass['F1']))
 
 
 
