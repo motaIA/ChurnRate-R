@@ -1,7 +1,22 @@
 if(!require(caret)) install.packages('caret')
 library(caret)
+if(!require('ROCR')) install.packages("ROCR")
+library(ROCR)
 
 # https://topepo.github.io/caret/index.html
+
+#ROC 
+
+roc<-function(prediction){
+  r<-performance(prediction,'tpr','fpr')
+  plot(r)
+}
+
+#AUC
+auc<-function(prediction){
+  a<-performance(prediction,'auc')
+  return(a@y.values[[1]])
+}
 
 # utility
 
@@ -11,15 +26,24 @@ fn_utility <- function(yhat, y) {
   return(mean(fp_utility + tp_utility)) 
 }
 
+fn_utility_num <- function(yhat, y) { 
+  fp_utility <- -10 * ( yhat == '1' & y == '0' )
+  tp_utility <- 25.5 * ( yhat == '1' & y == '1' )
+  return(mean(fp_utility + tp_utility)) 
+}
+
 fn_summaryUtility <- function(data, lev = NULL, model = NULL) {
   utility <- fn_utility(yhat = data$pred, y = data$obs)
   c(utility = utility)
 }
-
 # utility threshold
 
 fn_pred <- function(data, thr = 0.5) {
   factor(ifelse(data[, 'Yes'] > thr, 'Yes', 'No'))
+}
+
+fn_pred_num <- function(data, thr = 0.5) {
+  ifelse(data[, '1'] > thr, 1,0)
 }
 
 fn_summaryUtilityThr <- function(data, thr_vec) {
